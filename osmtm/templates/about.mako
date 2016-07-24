@@ -12,7 +12,7 @@
       <p>
       ${custom.about_tasking_manager_intro()}
       </p>
-      <h3>${_('Sponsorship and Funding')}</h3>
+      <!--<h3>${_('Sponsorship and Funding')}</h3>
       <p>${_('OSM Tasking Manager was designed and built for the <a href="http://hot.openstreetmap.org">Humanitarian OpenStreetMap Team</a>.') |n}
       <img src="${request.static_url('osmtm:static/img/hot.png')}" />
       <p>${_('With the invaluable help from:') | n}<p>
@@ -40,7 +40,7 @@
         <img src="${request.static_url('osmtm:static/img/gfdrr.png')}" />
         <img src="${request.static_url('osmtm:static/img/redcross.png')}" />
         <img src="${request.static_url('osmtm:static/img/gwu.png')}" />
-      </p>
+      </p>-->
     </div>
     <div class="col-md-5">
       <h3>${_('Getting Started')}</h3>

@@ -21,7 +21,7 @@
     ${_('Just jump over to <a target="_blank" href="http://www.openstreetmap.org">OpenStreetMap</a>, create an account, and then visit the LearnOSM tutorials on the <a target="_blank" href="http://learnosm.org/en/coordination/tasking-manager/">Tasking Manager</a> and the <a target="_blank" href="http://learnosm.org/en/beginner/id-editor">iD editor</a>. Alternatively check out the <a target="_blank" href="http://mapgive.state.gov">MapGive website</a> which also provides information on the Tasking Manager and mapping. Once you have read up on how to map, come back here to help map for people on the ground!')|n}
     </p>
     <hr>
-    <h4>${_('Questions About Tasks, Mapping or HOT?')}</h4>
+    <!--<h4>${_('Questions About Tasks, Mapping or HOT?')}</h4>
     <p>
     ${_('If you have any questions about a project, a task or mapping in general please ask on our mailing list: <a href="https://lists.openstreetmap.org/listinfo/hot">HOT E-Mail List</a>.')|n}
     </p>
@@ -30,13 +30,13 @@
     </p>
     <p>
     ${_('General inquries and comments are welcomed at: <a href="mailto:info@hotosm.org" target="_top">info@hotosm.org</a>.')|n}
-    </p>
+    </p>-->
 </%def>
 
 <%def  name="footer_contact_text()">
-  ${_('Email HOT at')} <a href='mailto:info@hotosm.org'>info@hotosm.org</a><br />
-  ${_('Follow HOT on')} <a href='http://www.twitter.com/hotosm'>Twitter</a><br />
-  ${_('Like HOT on')} <a href='http://facebook.com/hotosm'>Facebook</a>
+  ${_('Find administrator at')} <a href='mailto:mapeado-colaborativo@googlegroups.com'>mapeado-colaborativo@googlegroups.com</a><br />
+  ${_('Follow MapColabora on')} <a href='http://www.twitter.com/mapcolabora'>Twitter</a><br />
+  <!--${_('Like HOT on')} <a href='http://facebook.com/hotosm'>Facebook</a>-->
 </%def>
 
 <%def name="analytics()">
@@ -117,7 +117,7 @@
       box-shadow: 0 0 3px rgba(0,0,0,.3);
     }
   </style>
-  <div class="corner-ribbon top-left sticky orange shadow ">
+  <div class="corner-ribbon top-left sticky orange shadow hidden">
     <a href="https://donate.hotosm.org" target="_blank">${_('Please donate!')}</a>
   </div>
 </%def>
