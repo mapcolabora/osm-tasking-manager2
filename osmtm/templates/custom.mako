@@ -34,7 +34,7 @@
 </%def>
 
 <%def  name="footer_contact_text()">
-  ${_('Find administrator at')} <a href='mailto:mapeadocolaborativo@gmail.com'>mapeado-colaborativo@googlegroups.com</a><br />
+  ${_('Find administrator at')} <a href='mailto:mapeadocolaborativo@gmail.com'>mapeadocolaborativo@gmail.com</a><br />
   ${_('Follow Mapeado Colaborativo on')} <a href='http://www.twitter.com/mapcolabora'>Twitter</a><br />
   <!--${_('Like HOT on')} <a href='http://facebook.com/hotosm'>Facebook</a>-->
 </%def>
