@@ -1,0 +1,38 @@
+2018-05-08 11:27:26,893 http://tareas.openstreetmap.es/user/messages/check?interval=30208
+Traceback (most recent call last):
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_exclog/__init__.py", line 111, in exclog_tween
+    return handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 101, in tm_tween
+    reraise(*exc_info)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 83, in tm_tween
+    response = handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/router.py", line 145, in handle_request
+    view_name
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/view.py", line 527, in _call_view
+    response = view_callable(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 352, in rendered_view
+    result = view(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 506, in _requestonly_view
+    response = view(request)
+  File "/home/osmtm/osm-tasking-manager2/osmtm/views/message.py", line 41, in check
+    unread=len(user.unread_messages))
+AttributeError: 'NoneType' object has no attribute 'unread_messages'
+2018-05-08 11:27:56,967 http://tareas.openstreetmap.es/user/messages/check?interval=30002
+Traceback (most recent call last):
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_exclog/__init__.py", line 111, in exclog_tween
+    return handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 101, in tm_tween
+    reraise(*exc_info)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 83, in tm_tween
+    response = handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/router.py", line 145, in handle_request
+    view_name
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/view.py", line 527, in _call_view
+    response = view_callable(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 352, in rendered_view
+    result = view(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 506, in _requestonly_view
+    response = view(request)
+  File "/home/osmtm/osm-tasking-manager2/osmtm/views/message.py", line 41, in check
+    unread=len(user.unread_messages))
+AttributeError: 'NoneType' object has no attribute 'unread_messages'

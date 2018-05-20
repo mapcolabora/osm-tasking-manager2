@@ -1,0 +1,55 @@
+2018-05-07 06:18:08,771 WARNI [apscheduler.executors.default][Thread-4] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-07 06:18:12 CEST)" was missed by 0:00:01.049731
+2018-05-07 08:17:54,377 WARNI [apscheduler.executors.default][Thread-6] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-07 08:17:57 CEST)" was missed by 0:00:01.965591
+2018-05-07 21:30:09,609 WARNI [apscheduler.executors.default][Thread-5] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-07 21:30:12 CEST)" was missed by 0:00:02.197619
+2018-05-07 22:00:24,372 WARNI [apscheduler.executors.default][Thread-6] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-07 22:00:27 CEST)" was missed by 0:00:01.960532
+2018-05-08 11:27:26,893 ERROR [exc_logger][Dummy-11] http://tareas.openstreetmap.es/user/messages/check?interval=30208
+Traceback (most recent call last):
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_exclog/__init__.py", line 111, in exclog_tween
+    return handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 101, in tm_tween
+    reraise(*exc_info)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 83, in tm_tween
+    response = handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/router.py", line 145, in handle_request
+    view_name
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/view.py", line 527, in _call_view
+    response = view_callable(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 352, in rendered_view
+    result = view(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 506, in _requestonly_view
+    response = view(request)
+  File "/home/osmtm/osm-tasking-manager2/osmtm/views/message.py", line 41, in check
+    unread=len(user.unread_messages))
+AttributeError: 'NoneType' object has no attribute 'unread_messages'
+2018-05-08 11:27:56,967 ERROR [exc_logger][MainThread] http://tareas.openstreetmap.es/user/messages/check?interval=30002
+Traceback (most recent call last):
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_exclog/__init__.py", line 111, in exclog_tween
+    return handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 101, in tm_tween
+    reraise(*exc_info)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid_tm/__init__.py", line 83, in tm_tween
+    response = handler(request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/router.py", line 145, in handle_request
+    view_name
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/view.py", line 527, in _call_view
+    response = view_callable(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 352, in rendered_view
+    result = view(context, request)
+  File "/home/osmtm/osm-tasking-manager2/env/lib/python2.7/site-packages/pyramid/config/views.py", line 506, in _requestonly_view
+    response = view(request)
+  File "/home/osmtm/osm-tasking-manager2/osmtm/views/message.py", line 41, in check
+    unread=len(user.unread_messages))
+AttributeError: 'NoneType' object has no attribute 'unread_messages'
+2018-05-08 23:04:58,943 WARNI [apscheduler.executors.default][Thread-1] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-08 23:04:57 CEST)" was missed by 0:00:01.151132
+2018-05-09 12:11:34,186 WARNI [apscheduler.executors.default][Thread-8] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-09 12:11:37 CEST)" was missed by 0:00:01.656804
+2018-05-09 12:14:25,005 WARNI [apscheduler.executors.default][Thread-10] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-09 12:14:27 CEST)" was missed by 0:00:02.476137
+2018-05-09 20:48:33,769 WARNI [apscheduler.executors.default][Thread-10] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-09 20:48:37 CEST)" was missed by 0:00:01.240302
+2018-05-10 14:36:24,238 WARNI [apscheduler.executors.default][Thread-7] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-10 14:36:22 CEST)" was missed by 0:00:01.633436
+2018-05-10 21:29:05,372 WARNI [apscheduler.executors.default][Thread-8] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-10 21:29:07 CEST)" was missed by 0:00:02.767521
+2018-05-10 21:31:08,619 WARNI [apscheduler.executors.default][Thread-3] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-10 21:31:12 CEST)" was missed by 0:00:01.015398
+2018-05-10 21:43:14,862 WARNI [apscheduler.executors.default][Thread-8] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-10 21:43:12 CEST)" was missed by 0:00:02.258242
+2018-05-11 08:21:28,594 WARNI [apscheduler.executors.default][Thread-4] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-11 08:21:32 CEST)" was missed by 0:00:01.097844
+2018-05-11 08:22:04,475 WARNI [apscheduler.executors.default][Thread-6] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-11 08:22:07 CEST)" was missed by 0:00:01.979537
+2018-05-11 08:22:14,124 WARNI [apscheduler.executors.default][Thread-7] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-11 08:22:12 CEST)" was missed by 0:00:01.628520
+2018-05-11 08:22:19,432 WARNI [apscheduler.executors.default][Thread-4] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-11 08:22:22 CEST)" was missed by 0:00:01.936039
+2018-05-11 16:31:28,627 WARNI [apscheduler.executors.default][Thread-4] Run time of job "check_task_expiration (trigger: interval[0:00:05], next run at: 2018-05-11 16:31:32 CEST)" was missed by 0:00:01.131622

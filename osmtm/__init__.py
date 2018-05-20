@@ -1,4 +1,6 @@
 import bleach
+import subprocess
+import os
 from pyramid.config import Configurator
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
@@ -27,11 +29,19 @@ scheduler = BackgroundScheduler()
 scheduler.start()
 
 
+try:
+    version = subprocess.check_output(['git', 'describe', '--always'],
+                                      cwd=os.path.dirname(__file__))
+except Exception as e:
+    version = 'N/A'
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     settings['mako.directories'] = 'osmtm:templates'
     load_local_settings(settings)
+    settings.update({'version': version})
 
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
@@ -55,7 +65,6 @@ def main(global_config, **settings):
 
     # enable exception logger
     config.include('pyramid_exclog')
-
     session_factory = UnencryptedCookieSessionFactoryConfig('itsasecret')
     config.set_session_factory(session_factory)
 
@@ -107,6 +116,9 @@ def main(global_config, **settings):
     config.add_route('task_validate',
                      '/project/{project:\d+}/task/{task:\d+}/validate',
                      xhr=True)
+    config.add_route('task_cancel_done',
+                     '/project/{project:\d+}/task/{task:\d+}/cancel_done',
+                     xhr=True)
     config.add_route('task_comment',
                      '/project/{project:\d+}/task/{task:\d+}/comment',
                      xhr=True)
@@ -124,6 +136,13 @@ def main(global_config, **settings):
     config.add_route('task_difficulty_delete',
                      '/project/{project:\d+}/task/{task:\d+}/difficulty',
                      xhr=True, request_method='DELETE')
+    config.add_route('task_users',
+                     '/project/{project:\d+}/task/{task:\d+}/users')
+
+    config.add_route('labels', '/labels')
+    config.add_route('label_new', '/label/new')
+    config.add_route('label_edit', '/label/{label:\d+}/edit')
+    config.add_route('label_delete', '/label/{label:\d+}/delete')
 
     config.add_route('users', '/users')
     config.add_route('users_json', '/users.json')
@@ -132,6 +151,9 @@ def main(global_config, **settings):
     config.add_route('user', '/user/{username}')
     config.add_route('user_admin', '/user/{id:\d+}/admin')
     config.add_route('user_project_manager', '/user/{id:\d+}/project_manager')
+    config.add_route('user_validator', '/user/{id:\d+}/validator')
+    config.add_route('user_experienced_mapper',
+                     '/user/{id:\d+}/experienced_mapper')
     config.add_route('user_prefered_editor',
                      '/user/prefered_editor/{editor}', xhr=True)
     config.add_route('user_prefered_language',
@@ -143,6 +165,8 @@ def main(global_config, **settings):
     config.add_route('license_delete', '/license/{license:\d+}/delete')
 
     config.add_route('message_read', '/message/read/{message:\d+}')
+
+    config.add_route('markdown_ref', '/markdown_ref')
 
     config.add_translation_dirs('osmtm:locale')
     config.set_locale_negotiator('osmtm.i18n.custom_locale_negotiator')
@@ -157,7 +181,12 @@ def main(global_config, **settings):
     bleach.ALLOWED_TAGS.append(u'p')
     bleach.ALLOWED_TAGS.append(u'pre')
 
-    scheduler.add_job(check_task_expiration, 'interval', seconds=5,
+    check_expiration_interval = int(
+        settings.get('check_expiration_interval', 5)
+    )
+
+    scheduler.add_job(check_task_expiration, 'interval',
+                      seconds=check_expiration_interval,
                       replace_existing=True)
 
     return config.make_wsgi_app()

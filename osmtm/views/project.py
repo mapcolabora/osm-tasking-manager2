@@ -11,8 +11,10 @@ from ..models import (
     Task,
     TaskState,
     TaskLock,
+    Label,
     License,
 )
+
 from pyramid.security import authenticated_userid
 
 from pyramid.i18n import (
@@ -21,9 +23,11 @@ from pyramid.i18n import (
 from sqlalchemy.orm import (
     joinedload,
 )
-from sqlalchemy.sql.expression import (
-    and_,
+
+from sqlalchemy import (
+    or_,
     not_,
+    and_,
     func,
 )
 
@@ -237,8 +241,9 @@ def project_edit(request):
     project = DBSession.query(Project).get(id)
 
     licenses = DBSession.query(License).all()
-    if 'form.submitted' in request.params:
+    labels = DBSession.query(Label).all()
 
+    if 'form.submitted' in request.params:
         for locale, translation in project.translations.iteritems():
             with project.force_locale(locale):
                 for field in ['name', 'short_description', 'description',
@@ -258,11 +263,28 @@ def project_edit(request):
             license = DBSession.query(License).get(license_id)
             project.license = license
 
+        project.labels = []
+        labels = [x for x in request.params if 'label_' in x]
+        if len(labels) != 0:
+            for t in labels:
+                if request.params[t] != "":
+                    label_id = int(t[6:])
+                    label = DBSession.query(Label).get(label_id)
+                    project.labels.append(label)
+
         if 'private' in request.params and \
                 request.params['private'] == 'on':
             project.private = True
         else:
             project.private = False
+
+        project.requires_validator_role = \
+            ('requires_validator_role' in request.params and
+             request.params['requires_validator_role'] == 'on')
+
+        project.requires_experienced_mapper_role = \
+            ('requires_experienced_mapper_role' in request.params and
+             request.params['requires_experienced_mapper_role'] == 'on')
 
         project.status = request.params['status']
         project.priority = request.params['priority']
@@ -305,7 +327,7 @@ def project_edit(request):
         features.append(Feature(geometry=shape.to_shape(area.geometry)))
 
     return dict(page_id='project_edit', project=project, licenses=licenses,
-                translations=translations,
+                translations=translations, labels=labels,
                 priority_areas=FeatureCollection(features))
 
 
@@ -343,40 +365,24 @@ def check_for_updates(request):
     interval = request.GET['interval']
     date = datetime.datetime.utcnow() \
         - datetime.timedelta(0, 0, 0, int(interval))
-    updated = []
 
-    tasks = DBSession.query(Task) \
-                     .filter(Task.project_id == id, Task.date > date) \
-                     .all()
-    for task in tasks:
-        updated.append(task.to_feature())
-
-    tasks_lock = DBSession.query(TaskLock) \
-        .filter(
-            TaskLock.project_id == id,
-            TaskLock.date > date,
-            TaskLock.lock != None  # noqa
-        ) \
-        .all()
-    for lock in tasks_lock:
-        updated.append(lock.task.to_feature())
-
-    states = DBSession.query(TaskState) \
-        .filter(
-            TaskState.project_id == id,
-            TaskState.date > date,
-            TaskState.state != TaskState.state_ready
-        ) \
-        .all()
-    for state in states:
-        updated.append(state.task.to_feature())
+    updated = DBSession.query(Task) \
+                       .join(TaskState) \
+                       .join(TaskLock) \
+                       .filter(Task.project_id == id) \
+                       .filter(or_(Task.date > date,
+                                   TaskState.date > date,
+                                   TaskLock.date > date)) \
+                       .options(joinedload(Task.cur_state)) \
+                       .options(joinedload(Task.cur_lock)) \
+                       .all()
 
     if len(updated) > 0:
-        return dict(update=True, updated=updated)
+        return dict(update=True, updated=[t.to_feature() for t in updated])
     return dict(update=False)
 
 
-@view_config(route_name="project_tasks_json", renderer='json',
+@view_config(route_name="project_tasks_json",
              permission="project_show",
              http_cache=0)
 def project_tasks_json(request):
@@ -386,18 +392,50 @@ def project_tasks_json(request):
             'attachment; filename="osmtm_tasks_%s.json"' % id
 
     request.response.headerlist.append(('Access-Control-Allow-Origin', '*'))
-    return get_tasks(id)
+    request.response.content_type = 'application/json'
+    request.response.text = get_tasks(id)
+    return request.response
 
 
 def get_tasks(id):
-    project = DBSession.query(Project).get(id)
+    json = DBSession.execute('''
+SELECT row_to_json(fc)::TEXT
+FROM (
+    SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features
+    FROM (
+      SELECT 'Feature' As type
+    , ST_AsGeoJSON(task.geometry, 5)::json As geometry
+    , task.id
+    , row_to_json((SELECT l FROM (SELECT x, y, zoom, extra_properties,
+    difficulty, state, lock as locked) As l
+      )) As properties
+      FROM task
+      LEFT OUTER JOIN task_lock AS task_lock_1
+                    ON task.id = task_lock_1.task_id
+                       AND task.project_id = task_lock_1.project_id
+                       AND task_lock_1.date = (SELECT
+                           Max(task_lock_1.date) AS max_1
+                                               FROM   task_lock AS task_lock_1
+                                               WHERE
+                           task_lock_1.task_id = task.id
+                           AND task_lock_1.project_id =
+                               task.project_id)
+      LEFT OUTER JOIN task_state AS task_state_1
+                    ON task.id = task_state_1.task_id
+                       AND task.project_id = task_state_1.project_id
+                       AND task_state_1.date = (SELECT
+                           Max(task_state_1.date) AS max_2
+                                                FROM
+                           task_state AS task_state_1
+                                                WHERE
+                           task_state_1.task_id = task.id
+                           AND task_state_1.project_id = task.project_id)
+      WHERE task.project_id = %s
+    ) As f
+)  As fc;
+    ''' % id).first()[0]
 
-    tasks = DBSession.query(Task) \
-                     .filter(Task.project_id == project.id) \
-                     .options(joinedload(Task.cur_state)) \
-                     .options(joinedload(Task.cur_lock)) \
-
-    return FeatureCollection([task.to_feature() for task in tasks])
+    return json
 
 
 @view_config(route_name="project_user_add", renderer='json',
@@ -432,44 +470,85 @@ def project_user_delete(request):
 
 @view_config(route_name='project_users', renderer='json',
              permission="project_show")
+@view_config(route_name='task_users', renderer='json',
+             permission="project_show")
+@view_config(route_name='users_json', renderer='json',
+             permission="project_show")
 def project_users(request):
     ''' get the list of users for a given project.
         Returns list of allowed users if project is private.
         Return complete list of users if project is not private.
         Users with assigned tasks will appear first. '''
 
-    id = request.matchdict['project']
-    project = DBSession.query(Project).get(id)
+    if 'project' in request.matchdict:
+        project_id = request.matchdict['project']
+        project = DBSession.query(Project).get(project_id)
+    else:
+        project = None
 
     query = request.params.get('q', '')
     query_filter = User.username.ilike(u"%" + query + "%")
 
-    ''' list of users with assigned tasks '''
-    t = DBSession.query(
-            func.max(Task.assigned_date).label('date'),
-            Task.assigned_to_id
-        ) \
-        .filter(
-            Task.assigned_to_id != None,  # noqa
-            Task.project_id == id
-        ) \
-        .group_by(Task.assigned_to_id) \
-        .subquery('t')
-    assigned = DBSession.query(User) \
-        .join(t, and_(User.id == t.c.assigned_to_id)) \
-        .filter(query_filter) \
-        .order_by(t.c.date.desc()) \
-        .all()
-
     r = []
-    for user in assigned:
-        r.append(user.username)
+    if 'task' in request.matchdict:
+        task_id = request.matchdict['task']
+        ''' list of users who contributed to the current task '''
+        filter = and_(
+            TaskState.project_id == project_id,
+            TaskState.task_id == task_id
+        )
 
-    if project.private:
+        contributors = DBSession.query(User) \
+            .join(TaskState) \
+            .filter(filter) \
+            .order_by(TaskState.date.desc()) \
+            .all()
+
+        for user in contributors:
+            r.append(user.username)
+
+        ''' list of users who contributed to the current task '''
+        filter = and_(
+            TaskLock.project_id == project_id,
+            TaskLock.task_id == task_id
+        )
+
+        lockers = DBSession.query(User) \
+            .join(TaskLock) \
+            .filter(filter) \
+            .order_by(TaskLock.date.desc()) \
+            .all()
+        for user in lockers:
+            if user.username not in r:
+                r.append(user.username)
+
+    if project is not None:
+        ''' list of users with assigned tasks '''
+        t = DBSession.query(
+                func.max(Task.assigned_date).label('date'),
+                Task.assigned_to_id
+            ) \
+            .filter(
+                Task.assigned_to_id != None,  # noqa
+                Task.project_id == project_id
+            ) \
+            .group_by(Task.assigned_to_id) \
+            .subquery('t')
+        assigned = DBSession.query(User) \
+            .join(t, and_(User.id == t.c.assigned_to_id)) \
+            .filter(query_filter) \
+            .order_by(t.c.date.desc()) \
+            .all()
+
+        for user in assigned:
+            if user.username not in r:
+                r.append(user.username)
+
+    if project is not None and project.private:
         ''' complete list with allowed users '''
         users = DBSession.query(User) \
             .join(Project.allowed_users) \
-            .filter(Project.id == id, query_filter)
+            .filter(Project.id == project_id, query_filter)
         for user in users:
             if user.username not in r:
                 r.append(user.username)

@@ -27,8 +27,16 @@ osmtm.project = (function() {
     tpl: "<li data-value='${name}'>${name}</li>",
     show_the_at: true,
     limit: 10,
-    data: base_url + 'users.json',
     callbacks: {
+      remoteFilter: function(query, callback) {
+        $.getJSON(
+          base_url + 'project/' + project_id + '/task/' + task_id + '/users',
+          {q: query},
+          function(data) {
+            callback(data);
+          }
+        );
+      },
       beforeInsert: function(value)  {
         // username contains a space
         if (value.match((/ /))) {
@@ -322,6 +330,8 @@ osmtm.project = (function() {
 
     if ($(this).hasClass('disabled')) {
       return false;
+    } else {
+      $(this).addClass('disabled'); // give an indication of activity
     }
 
     var params = {};
@@ -533,7 +543,7 @@ osmtm.project = (function() {
   function setPreferedEditor() {
     if (osmtm.prefered_editor !== '') {
       $('#prefered_editor').text($('#' + osmtm.prefered_editor + ' a').text());
-      $('#josm_task_boundary_tip').toggle(osmtm.prefered_editor == 'josm');
+      // $('#josm_task_boundary_tip').toggle(osmtm.prefered_editor == 'josm');
     }
   }
 
@@ -560,7 +570,9 @@ osmtm.project = (function() {
 
     hideTooltips();
     var formData = $(form).serializeObject();
-    var submitName = $("button[type=submit][clicked=true]").attr("name");
+    var submitButton = $("button[type=submit][clicked=true]");
+    submitButton.addClass('disabled');
+    var submitName = submitButton.attr("name");
 
     // require a comment for invalidation
     if (submitName == 'invalidate' && !formData.comment.trim()) {
@@ -767,7 +779,6 @@ osmtm.project = (function() {
 
   function checkForUpdates() {
     window.clearTimeout(checkTimeout);
-    checkTimeout = window.setTimeout(checkForUpdates, 5000);
     if (document.hasFocus && !document.hasFocus()) {
       clearInterval(pageFocusInterval);
       pageFocusInterval = setInterval( checkPageFocus, 200 );
@@ -781,6 +792,7 @@ osmtm.project = (function() {
         interval: interval
       },
       success: function(data){
+        checkTimeout = window.setTimeout(checkForUpdates, 5000);
         if (data.updated) {
           $.each(data.updated, function(index, task) {
             tasksLayer.eachLayer(function(layer) {
@@ -793,8 +805,12 @@ osmtm.project = (function() {
           });
           updateLockedCounter();
         }
-      }, dataType: "json"}
-    );
+      },
+      error: function(){
+        checkTimeout = window.setTimeout(checkForUpdates, 5000);
+      },
+      dataType: "json"
+    });
     lastUpdateCheck = now;
   }
 

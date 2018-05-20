@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 <%inherit file="base.mako"/>
+<%namespace file="helpers.mako" name="helpers"/>
 <%block name="header">
 <h1>${project.id} - ${project.name} - ${_('Edit')}</h1>
 </%block>
 <%block name="content">
-<link rel="stylesheet" href="${request.static_url('osmtm:static/js/lib/datepicker3.css')}">
-<script type="text/javascript" src="${request.static_url('osmtm:static/js/lib/angular.min.js')}"></script>
-<script type="text/javascript" src="${request.static_url('osmtm:static/js/lib/bootstrap-datepicker.js')}"></script>
+<link rel="stylesheet" href="${request.static_path('osmtm:static/js/lib/datepicker3.css')}">
+<script type="text/javascript" src="${request.static_path('osmtm:static/js/lib/angular.min.js')}"></script>
+<script type="text/javascript" src="${request.static_path('osmtm:static/js/lib/bootstrap-datepicker.js')}"></script>
 <script>
     var locale_name = "${request.locale_name}";
 </script>
@@ -14,18 +15,18 @@
 <%
   bootstrap_locale_baseurl = 'osmtm:static/js/lib/locales/bootstrap-datepicker.%s.js'
   try:
-    bootstrap_locale = request.static_url(bootstrap_locale_baseurl % request.locale_name.replace('_', '-'))
+    bootstrap_locale = request.static_path(bootstrap_locale_baseurl % request.locale_name.replace('_', '-'))
   except IOError:
     try:
-      bootstrap_locale = request.static_url(bootstrap_locale_baseurl % request.locale_name[:2])
+      bootstrap_locale = request.static_path(bootstrap_locale_baseurl % request.locale_name[:2])
     except IOError:
-      bootstrap_locale = request.static_url(bootstrap_locale_baseurl % 'en')
+      bootstrap_locale = request.static_path(bootstrap_locale_baseurl % 'en')
 %>
 <script type="text/javascript" src="${bootstrap_locale}"></script>
 
-<link rel="stylesheet" href="${request.static_url('osmtm:static/js/lib/Leaflet.draw/dist/leaflet.draw.css')}"/>
-<script src="${request.static_url('osmtm:static/js/lib/leaflet.js')}"></script>
-<script src="${request.static_url('osmtm:static/js/lib/Leaflet.draw/dist/leaflet.draw.js')}"></script>
+<link rel="stylesheet" href="${request.static_path('osmtm:static/js/lib/Leaflet.draw/dist/leaflet.draw.css')}"/>
+<script src="${request.static_path('osmtm:static/js/lib/leaflet.js')}"></script>
+<script src="${request.static_path('osmtm:static/js/lib/Leaflet.draw/dist/leaflet.draw.js')}"></script>
 <div id="markdown_cheat_sheet" class="modal fade">
   <div class="modal-dialog">
   <div class="modal-content">
@@ -135,7 +136,8 @@ geometry = loads(str(project.area.geometry.data))
           <li><a href="#area" data-toggle="tab">${_('Area')}</a></li>
           <li><a href="#imagery" data-toggle="tab">${_('Imagery')}</a></li>
           <li><a id="priority_areas_tab" href="#priority_areas" data-toggle="tab">${_('Priority Areas')}</a></li>
-          <li><a href="#allowed_users" data-toggle="tab">${_('Allowed Users')}</a></li>
+          <li><a href="#permissions" data-toggle="tab">${_('Permissions')}</a></li>
+          <li><a href="#labels" data-toggle="tab">${_('Labels')}</a></li>
           <li><a href="#misc" data-toggle="tab">${_('Misc')}</a></li>
         </ul>
         <div class="tab-content">
@@ -154,8 +156,11 @@ geometry = loads(str(project.area.geometry.data))
           <div class="tab-pane" id="priority_areas">
             ${priority_areas_()}
           </div>
-          <div class="tab-pane" id="allowed_users">
-            ${allowed_users()}
+          <div class="tab-pane" id="permissions">
+            ${permissions()}
+          </div>
+          <div class="tab-pane" id="labels">
+            ${labels_()}
           </div>
           <div class="tab-pane" id="misc">
             ${misc()}
@@ -171,8 +176,8 @@ geometry = loads(str(project.area.geometry.data))
       </div>
     </div>
   </form>
-  <script type="text/javascript" src="${request.static_url('osmtm:static/js/project.edit.js')}"></script>
-  <script src="${request.static_url('osmtm:static/js/lib/typeahead.bundle.js')}"></script>
+  <script type="text/javascript" src="${request.static_path('osmtm:static/js/project.edit.js')}"></script>
+  <script src="${request.static_path('osmtm:static/js/lib/typeahead.bundle.js')}"></script>
 </div>
 </%block>
 <%block name="description">
@@ -218,7 +223,7 @@ geometry = loads(str(project.area.geometry.data))
         <div class="form-group">
           <label for="id_name" class="control-label">${_('Name of the project')}
           </label>
-          ${locale_chooser(inputname='name')}
+          ${helpers.locale_chooser(inputname='name')}
           <div class="tab-content">
             % for locale, translation in translations:
             <div id="tab_name_${locale}"
@@ -242,7 +247,7 @@ geometry = loads(str(project.area.geometry.data))
           <label for="id_short_description" class="control-label">
             ${_('Short Description')}
           </label>
-          ${locale_chooser(inputname='short_description')}
+          ${helpers.locale_chooser(inputname='short_description')}
           <div class="tab-content">
             % for locale, translation in translations:
               <div id="short_description_${locale}"
@@ -395,7 +400,7 @@ geometry = loads(str(project.area.geometry.data))
 </div>
 </%block>
 
-<%block name="allowed_users">
+<%block name="permissions">
 <div class="row">
   <div class="input-group">
     <div class="checkbox">
@@ -444,12 +449,70 @@ geometry = loads(str(project.area.geometry.data))
     </div>
   </div>
 </div>
+<hr>
+<div class="row">
+  <div class="input-group">
+    <div class="checkbox">
+      <label>
+        <%
+          checked = 'checked' if project.requires_validator_role else ''
+        %>
+        <input type="checkbox" name="requires_validator_role" ${checked}>
+        ${_('Only validators can validate')}
+      </label>
+      <div class="help-block">
+        ${_("If checked, only users with the 'validator role' will be able to (in)validate tasks for the current project. If not, anyone can.")}
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="row">
+  <div class="input-group">
+    <div class="checkbox">
+      <label>
+        <%
+          checked = 'checked' if project.requires_experienced_mapper_role else ''
+        %>
+        <input type="checkbox" name="requires_experienced_mapper_role" ${checked}>
+        ${_('Only experienced mappers can contribute')}
+      </label>
+      <div class="help-block">
+        ${_("If checked, only users with the 'experienced mapper role' will be able to contribute to the current project. If not, anyone can.")}
+      </div>
+    </div>
+  </div>
+</div>
 <%
   from osmtm.models import dumps
 %>
 <script>
   var allowed_users = ${dumps({user.id: user.as_dict() for user in project.allowed_users})|n};
 </script>
+</%block>
+
+<%block name="labels_">
+<%
+  from osmtm.mako_filters import contrast
+%>
+<div class="form-group">
+    % for l in labels:
+    <%
+    checked = ""
+    if project.labels is not None and l in project.labels:
+      checked = "checked"
+    %>
+    <div class="checkbox">
+        <label>
+          <input type="checkbox" name="label_${l.id}" ${checked}>
+          <span class="label"
+                style="background-color: ${l.color}; color:${l.color|contrast};">
+            ${l.name}
+          </span>
+        </label>
+    </div>
+    % endfor
+</div>
 </%block>
 
 <%block name="misc">
@@ -517,7 +580,7 @@ geometry = loads(str(project.area.geometry.data))
 
 <%def name="textarea_with_preview(inputname, size=None)">
   <div class="tab-content">
-    ${locale_chooser(inputname=inputname)}
+    ${helpers.locale_chooser(inputname=inputname)}
     % for locale, translation in translations:
     <div id="tab_${inputname}_${locale}"
          data-locale="${locale}"
@@ -556,33 +619,4 @@ geometry = loads(str(project.area.geometry.data))
     % endfor
   </div>
   ${markdown_link()}
-</%def>
-
-<%def name="locale_chooser(inputname)">
-  <div class="btn-group pull-right" id="locale_chooser_${inputname}">
-    % for locale, translation in translations:
-    <a href
-      class="btn btn-default btn-xs ${'active' if locale == 'en' else ''}"
-      data-locale="${locale}">
-      <span class="${'text-muted' if getattr(translation, inputname) == '' else ''}">
-        ${locale}
-      </span>
-    </a>
-    % endfor
-  </div>
-  <script>
-    $('#locale_chooser_${inputname} a').on('click', function() {
-      $(this).addClass('active');
-      $(this).siblings().removeClass('active');
-      var locale = $(this).attr('data-locale');
-      $(this).parents('.form-group').find('.tab-pane').each(function(index, item) {
-        if ($(item).attr('data-locale') == locale) {
-          $(item).addClass('active');
-        } else {
-          $(item).removeClass('active');
-        }
-      });
-      return false;
-    });
-  </script>
 </%def>

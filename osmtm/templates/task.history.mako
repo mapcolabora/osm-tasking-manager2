@@ -9,6 +9,8 @@ from osmtm.mako_filters import (
     convert_mentions,
     markdown_filter,
 )
+
+import bleach
 %>
 <%page args="section='task'"/>
 % for index, step in enumerate(history):
@@ -21,9 +23,9 @@ from osmtm.mako_filters import (
 
     contributor = None
     if hasattr(step, 'user') and step.user is not None:
-      contributor = step.user.username
+      contributor = bleach.clean(step.user.username)
     elif hasattr(step, 'author') and step.author is not None:
-      contributor = step.author.username
+      contributor = bleach.clean(step.author.username)
     if contributor is not None:
       user_link = '<a href="' + request.route_path('user',username= contributor) + '">' + contributor + '</a>'
     else:
@@ -71,6 +73,11 @@ from osmtm.mako_filters import (
 
     <p class="text-muted">
       <em title="${step.date}Z" class="timeago"></em>
+      % if isinstance(step, TaskLock) and step.duration:
+      ## TRANSLATORS: as in 'locked x minutes ago for x minutes'
+      <em>${_('for')}</em>
+      <em title="${step.duration}" class="duration"></em>
+      % endif
     </p>
     </div>
 % endfor
@@ -79,4 +86,7 @@ from osmtm.mako_filters import (
 <div>${_('Nothing has happened yet.')}</div>
 % endif
 
-<script>$('.timeago').timeago()</script>
+<script>
+$('.timeago').timeago();
+$('.duration').duration();
+</script>
